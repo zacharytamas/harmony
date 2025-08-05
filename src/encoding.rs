@@ -217,7 +217,7 @@ impl HarmonyEncoding {
                     && first_final_idx.is_some_and(|first| *idx < first)
                     && msg.channel.as_deref() == Some("analysis"))
             })
-            .try_for_each(|(_, msg)| self.render_into(*msg, into));
+            .try_for_each(|(_, msg)| self.render_into(msg, into));
         self.conversation_has_function_tools
             .store(false, Ordering::Relaxed);
         result?;
@@ -385,10 +385,10 @@ impl HarmonyEncoding {
     fn json_schema_to_typescript(schema: &serde_json::Value, indent: &str) -> String {
         // Helper to check if this schema is an enum
         fn is_enum(schema: &serde_json::Value) -> bool {
-            return schema
+            schema
                 .get("enum")
                 .and_then(|e| e.as_array())
-                .map_or(false, |arr| !arr.is_empty());
+                .is_some_and(|arr| !arr.is_empty())
         }
 
         // Handle oneOf at the top level
@@ -398,30 +398,28 @@ impl HarmonyEncoding {
                 let mut first = true;
                 for variant in arr {
                     if !first {
-                        out.push_str("\n");
-                        out.push_str(&format!("{} | ", indent));
+                        out.push('\n');
+                        out.push_str(&format!("{indent} | "));
                     } else {
-                        out.push_str(&format!("\n{} | ", indent));
+                        out.push_str(&format!("\n{indent} | "));
                         first = false;
                     }
                     let type_str =
-                        Self::json_schema_to_typescript(variant, &format!("{}   ", indent));
+                        Self::json_schema_to_typescript(variant, &format!("{indent}   "));
                     let mut type_str = type_str;
                     if variant
                         .get("nullable")
                         .and_then(|n| n.as_bool())
                         .unwrap_or(false)
-                    {
-                        if !type_str.contains("null") {
-                            type_str = format!("{} | null", type_str);
+                        && !type_str.contains("null") {
+                            type_str = format!("{type_str} | null");
                         }
-                    }
                     out.push_str(&type_str);
                     // Add trailing comments (description, default)
                     let mut trailing_comments = Vec::new();
                     if let Some(desc) = variant.get("description") {
                         if let Some(desc_str) = desc.as_str() {
-                            trailing_comments.push(format!("{}", desc_str));
+                            trailing_comments.push(desc_str.to_string());
                         }
                     }
                     if let Some(default) = variant.get("default") {
@@ -429,7 +427,7 @@ impl HarmonyEncoding {
                             trailing_comments
                                 .push(format!("default: \"{}\"", default.as_str().unwrap()));
                         } else {
-                            trailing_comments.push(format!("default: {}", default));
+                            trailing_comments.push(format!("default: {default}"));
                         }
                     }
                     if !trailing_comments.is_empty() {
@@ -463,7 +461,7 @@ impl HarmonyEncoding {
                     // Render object-level description as comment
                     if let Some(desc) = schema.get("description") {
                         if let Some(desc_str) = desc.as_str() {
-                            out.push_str(&format!("{}// {}\n", indent, desc_str));
+                            out.push_str(&format!("{indent}// {desc_str}\n"));
                         }
                     }
                     out.push_str("{\n");
@@ -486,8 +484,7 @@ impl HarmonyEncoding {
                                 if let Some(title) = val.get("title") {
                                     if let Some(title_str) = title.as_str() {
                                         out.push_str(&format!(
-                                            "{0}// {1}\n{0}//\n",
-                                            indent, title_str
+                                            "{indent}// {title_str}\n{indent}//\n"
                                         ));
                                     }
                                 }
@@ -495,19 +492,18 @@ impl HarmonyEncoding {
                                 if val.get("oneOf").is_none() {
                                     if let Some(desc) = val.get("description") {
                                         if let Some(desc_str) = desc.as_str() {
-                                            out.push_str(&format!("{}// {}\n", indent, desc_str));
+                                            out.push_str(&format!("{indent}// {desc_str}\n"));
                                         }
                                     }
                                 }
                                 if let Some(examples) = val.get("examples") {
                                     if let Some(arr) = examples.as_array() {
                                         if !arr.is_empty() {
-                                            out.push_str(&format!("{}// Examples:\n", indent));
+                                            out.push_str(&format!("{indent}// Examples:\n"));
                                             for ex in arr {
                                                 if let Some(ex_str) = ex.as_str() {
                                                     out.push_str(&format!(
-                                                        "{}// - \"{}\"\n",
-                                                        indent, ex_str
+                                                        "{indent}// - \"{ex_str}\"\n"
                                                     ));
                                                 }
                                             }
@@ -526,7 +522,7 @@ impl HarmonyEncoding {
                                         }
                                         let mut skip_property_desc = false;
                                         if let Some(desc_str) = property_desc {
-                                            if let Some(first_variant) = arr.get(0) {
+                                            if let Some(first_variant) = arr.first() {
                                                 if let Some(variant_desc) =
                                                     first_variant.get("description")
                                                 {
@@ -545,8 +541,7 @@ impl HarmonyEncoding {
                                         if !skip_property_desc {
                                             if let Some(desc_str) = property_desc {
                                                 out.push_str(&format!(
-                                                    "{}// {}\n",
-                                                    indent, desc_str
+                                                    "{indent}// {desc_str}\n"
                                                 ));
                                                 rendered_property_desc_above = true;
                                             }
@@ -566,8 +561,7 @@ impl HarmonyEncoding {
                                                 ));
                                             } else {
                                                 out.push_str(&format!(
-                                                    "{}// default: {}\n",
-                                                    indent, default
+                                                    "{indent}// default: {default}\n"
                                                 ));
                                             }
                                         }
@@ -584,10 +578,10 @@ impl HarmonyEncoding {
                                         ));
                                         // Render each variant
                                         for (i, variant) in arr.iter().enumerate() {
-                                            out.push_str(&format!("{} | ", indent));
+                                            out.push_str(&format!("{indent} | "));
                                             let type_str = Self::json_schema_to_typescript(
                                                 variant,
-                                                &format!("{}   ", indent),
+                                                &format!("{indent}   "),
                                             );
                                             // Handle nullable in variant
                                             let mut type_str = type_str;
@@ -595,11 +589,9 @@ impl HarmonyEncoding {
                                                 .get("nullable")
                                                 .and_then(|n| n.as_bool())
                                                 .unwrap_or(false)
-                                            {
-                                                if !type_str.contains("null") {
-                                                    type_str = format!("{} | null", type_str);
+                                                && !type_str.contains("null") {
+                                                    type_str = format!("{type_str} | null");
                                                 }
-                                            }
                                             out.push_str(&type_str);
                                             // Add variant-level comments after the type
                                             let mut trailing_comments = Vec::new();
@@ -610,7 +602,7 @@ impl HarmonyEncoding {
                                                     // Only render if not equal to property-level description
                                                     if Some(desc_str) != property_desc {
                                                         trailing_comments
-                                                            .push(format!("{}", desc_str));
+                                                            .push(desc_str.to_string());
                                                     }
                                                 }
                                             }
@@ -627,7 +619,7 @@ impl HarmonyEncoding {
                                                     ));
                                                 } else {
                                                     trailing_comments
-                                                        .push(format!("default: {}", default));
+                                                        .push(format!("default: {default}"));
                                                 }
                                             }
                                             if !trailing_comments.is_empty() {
@@ -636,9 +628,9 @@ impl HarmonyEncoding {
                                                     trailing_comments.join(" ")
                                                 ));
                                             }
-                                            out.push_str("\n");
+                                            out.push('\n');
                                         }
-                                        out.push_str(&format!("{},\n", indent));
+                                        out.push_str(&format!("{indent},\n"));
                                         continue;
                                     }
                                 }
@@ -656,19 +648,17 @@ impl HarmonyEncoding {
                                 // Handle nullable
                                 let mut type_str = Self::json_schema_to_typescript(
                                     val,
-                                    &format!("{}    ", indent),
+                                    &format!("{indent}    "),
                                 );
                                 if val
                                     .get("nullable")
                                     .and_then(|n| n.as_bool())
                                     .unwrap_or(false)
-                                {
-                                    if !type_str.contains("null") {
-                                        type_str = format!("{} | null", type_str);
+                                    && !type_str.contains("null") {
+                                        type_str = format!("{type_str} | null");
                                     }
-                                }
                                 out.push_str(&type_str);
-                                out.push_str(",");
+                                out.push(',');
                                 // Add default as comment if present (and not already handled)
                                 if val.get("oneOf").is_none() {
                                     if let Some(default) = val.get("default") {
@@ -683,15 +673,15 @@ impl HarmonyEncoding {
                                                 default.as_str().unwrap()
                                             ));
                                         } else {
-                                            out.push_str(&format!(" // default: {}", default));
+                                            out.push_str(&format!(" // default: {default}"));
                                         }
                                     }
                                 }
-                                out.push_str("\n");
+                                out.push('\n');
                             }
                         }
                     }
-                    out.push_str(&format!("{}}}", indent));
+                    out.push_str(&format!("{indent}}}"));
                     out
                 }
                 "string" => {
@@ -699,7 +689,7 @@ impl HarmonyEncoding {
                         if let Some(arr) = enum_vals.as_array() {
                             let enums: Vec<String> = arr
                                 .iter()
-                                .filter_map(|v| v.as_str().map(|s| format!("\"{}\"", s)))
+                                .filter_map(|v| v.as_str().map(|s| format!("\"{s}\"")))
                                 .collect();
                             if !enums.is_empty() {
                                 return enums.join(" | ");
@@ -747,13 +737,13 @@ impl HarmonyEncoding {
     ) -> String {
         let mut tool_sections = Vec::<String>::new();
         tool_sections.push("# Tools".to_string());
-        for (_namespace, ns_config) in tools {
+        for ns_config in tools.values() {
             let mut tool_section_content = Vec::<String>::new();
             tool_section_content.push(format!("## {}\n", ns_config.name));
             if let Some(desc) = &ns_config.description {
                 for line in desc.lines() {
                     if !ns_config.tools.is_empty() {
-                        tool_section_content.push(format!("// {}", line));
+                        tool_section_content.push(format!("// {line}"));
                     } else {
                         tool_section_content.push(line.to_string());
                     }
@@ -763,7 +753,7 @@ impl HarmonyEncoding {
                 tool_section_content.push(format!("namespace {} {{\n", ns_config.name));
                 for tool in &ns_config.tools {
                     for line in tool.description.lines() {
-                        tool_section_content.push(format!("// {}", line));
+                        tool_section_content.push(format!("// {line}"));
                     }
                     if let Some(params) = &tool.parameters {
                         let param_type = Self::json_schema_to_typescript(params, "");
@@ -808,14 +798,14 @@ impl Render<Message> for HarmonyEncoding {
             // For users and assistants we put both the role, and optionally the user name.
             self.render_text_into(message.author.role.as_str(), into)?;
             if let Some(name) = &message.author.name {
-                self.render_text_into(format!(":{}", name), into)?;
+                self.render_text_into(format!(":{name}"), into)?;
             }
         };
 
         // next render the header recipient, if there is one
         if let Some(recipient) = &message.recipient {
             if recipient != "all" {
-                self.render_text_into(format!(" to={}", recipient), into)?;
+                self.render_text_into(format!(" to={recipient}"), into)?;
             }
         }
 
@@ -827,7 +817,7 @@ impl Render<Message> for HarmonyEncoding {
 
         // finally content type
         if let Some(content_type) = &message.content_type {
-            self.render_text_into(format!(" {}", content_type), into)?;
+            self.render_text_into(format!(" {content_type}"), into)?;
         }
 
         self.render_formatting_token_into(FormattingToken::Message, into)?;
@@ -935,7 +925,7 @@ impl Render<SystemContent> for HarmonyEncoding {
                     channels_header.push_str(" Channel must be included for every message.");
                 }
                 if self.conversation_has_function_tools.load(Ordering::Relaxed) {
-                    channels_header.push_str("\n");
+                    channels_header.push('\n');
                     channels_header.push_str(
                         "Calls to these tools must go to the commentary channel: 'functions'.",
                     );
@@ -1193,7 +1183,7 @@ impl StreamableParser {
         {
             if header_string.contains(constrain_marker) {
                 header_string = header_string
-                    .replace(constrain_marker, &format!(" {}", constrain_marker))
+                    .replace(constrain_marker, &format!(" {constrain_marker}"))
                     .trim()
                     .to_string();
             }

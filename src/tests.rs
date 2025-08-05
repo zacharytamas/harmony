@@ -501,11 +501,11 @@ fn test_preserve_cot() {
 fn test_reserved_token_decoding() {
     let encoding = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss).unwrap();
     assert_eq!(
-        encoding.tokenizer.decode_utf8(&[200014]).unwrap(),
+        encoding.tokenizer.decode_utf8([200014]).unwrap(),
         "<|reserved_200014|>"
     );
     assert_eq!(
-        encoding.tokenizer.decode_utf8(&[201088]).unwrap(),
+        encoding.tokenizer.decode_utf8([201088]).unwrap(),
         "<|reserved_201088|>"
     );
 }
@@ -527,7 +527,7 @@ fn test_render_and_render_conversation_roundtrip() {
 #[test]
 fn test_decode_utf8_invalid_token() {
     let encoding = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss).unwrap();
-    let result = encoding.tokenizer.decode_utf8(&[99999999]);
+    let result = encoding.tokenizer.decode_utf8([99999999]);
     assert!(result.is_err(), "Expected error for invalid token");
 }
 
