@@ -16,7 +16,7 @@ description = "OpenAI's response format for its open-weight model series gpt-oss
 readme = "README.md"
 
 [project.optional-dependencies]
-demo = []
+demo = ["uvicorn", "fastapi"]
 
 [tool.maturin]
 features = ["python-binding", "pyo3/extension-module"]
