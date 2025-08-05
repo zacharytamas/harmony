@@ -411,9 +411,10 @@ impl HarmonyEncoding {
                         .get("nullable")
                         .and_then(|n| n.as_bool())
                         .unwrap_or(false)
-                        && !type_str.contains("null") {
-                            type_str = format!("{type_str} | null");
-                        }
+                        && !type_str.contains("null")
+                    {
+                        type_str = format!("{type_str} | null");
+                    }
                     out.push_str(&type_str);
                     // Add trailing comments (description, default)
                     let mut trailing_comments = Vec::new();
@@ -540,9 +541,7 @@ impl HarmonyEncoding {
                                         let mut rendered_property_desc_above = false;
                                         if !skip_property_desc {
                                             if let Some(desc_str) = property_desc {
-                                                out.push_str(&format!(
-                                                    "{indent}// {desc_str}\n"
-                                                ));
+                                                out.push_str(&format!("{indent}// {desc_str}\n"));
                                                 rendered_property_desc_above = true;
                                             }
                                         }
@@ -589,9 +588,10 @@ impl HarmonyEncoding {
                                                 .get("nullable")
                                                 .and_then(|n| n.as_bool())
                                                 .unwrap_or(false)
-                                                && !type_str.contains("null") {
-                                                    type_str = format!("{type_str} | null");
-                                                }
+                                                && !type_str.contains("null")
+                                            {
+                                                type_str = format!("{type_str} | null");
+                                            }
                                             out.push_str(&type_str);
                                             // Add variant-level comments after the type
                                             let mut trailing_comments = Vec::new();
@@ -646,17 +646,16 @@ impl HarmonyEncoding {
                                     }
                                 ));
                                 // Handle nullable
-                                let mut type_str = Self::json_schema_to_typescript(
-                                    val,
-                                    &format!("{indent}    "),
-                                );
+                                let mut type_str =
+                                    Self::json_schema_to_typescript(val, &format!("{indent}    "));
                                 if val
                                     .get("nullable")
                                     .and_then(|n| n.as_bool())
                                     .unwrap_or(false)
-                                    && !type_str.contains("null") {
-                                        type_str = format!("{type_str} | null");
-                                    }
+                                    && !type_str.contains("null")
+                                {
+                                    type_str = format!("{type_str} | null");
+                                }
                                 out.push_str(&type_str);
                                 out.push(',');
                                 // Add default as comment if present (and not already handled)
