@@ -12,7 +12,7 @@ The [gpt-oss models][gpt-oss] were trained on the [harmony response format][harm
 
 The format enables the model to output to multiple different channels for chain of thought, and tool calling preambles along with regular responses. It also enables specifying various tool namespaces, and structured outputs along with a clear instruction hierarchy. [Check out the guide][harmony-format] to learn more about the format itself.
 
-```
+```text
 <|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.
 Knowledge cutoff: 2024-06
 Current date: 2025-06-28
@@ -114,12 +114,12 @@ openai-harmony = { git = "https://github.com/openai/harmony" }
 ```rust
 use openai_harmony::chat::{Message, Role, Conversation};
 use openai_harmony::{HarmonyEncodingName, load_harmony_encoding};
+
 fn main() -> anyhow::Result<()> {
     let enc = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss)?;
-    let convo = Conversation::from_messages([
-        Message::from_role_and_content(Role::User, "Hello there!"),
-    ]);
-    let tokens = enc.render_conversation_for_completion(&convo, Role::Assistant)?;
+    let convo =
+        Conversation::from_messages([Message::from_role_and_content(Role::User, "Hello there!")]);
+    let tokens = enc.render_conversation_for_completion(&convo, Role::Assistant, None)?;
     println!("{:?}", tokens);
     Ok(())
 }
@@ -130,7 +130,7 @@ fn main() -> anyhow::Result<()> {
 The majority of the rendering and parsing is built in Rust for performance and exposed to Python
 through thin [`pyo3`](https://pyo3.rs/) bindings.
 
-```
+```text
 ┌──────────────────┐      ┌───────────────────────────┐
 │  Python code     │      │  Rust core (this repo)    │
 │  (dataclasses,   │────► │  • chat / encoding logic  │
@@ -140,7 +140,7 @@ through thin [`pyo3`](https://pyo3.rs/) bindings.
 
 ### Repository layout
 
-```
+```text
 .
 ├── src/                  # Rust crate
 │   ├── chat.rs           # High-level data-structures (Role, Message, …)
