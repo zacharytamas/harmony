@@ -663,3 +663,39 @@ fn test_streamable_parser_tool_call_with_constrain_adjacent() {
         parser.messages()[0]
     );
 }
+
+#[test]
+fn test_tool_call_with_constrain_marker_adjacent() {
+    let encoding = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss).unwrap();
+    let text = "<|start|>assistant to=functions.get_weather<|channel|>commentary<|constrain|>json<|message|>{\"location\": \"Tokyo\"}<|end|>";
+    let tokens = encoding.tokenizer().encode_with_special_tokens(text);
+    let parsed = encoding
+        .parse_messages_from_completion_tokens(tokens, None)
+        .expect("expected to parse");
+    let expected =
+        vec![
+            Message::from_role_and_content(Role::Assistant, "{\"location\": \"Tokyo\"}")
+                .with_channel("commentary")
+                .with_recipient("functions.get_weather")
+                .with_content_type("<|constrain|>json"),
+        ];
+    assert_eq!(parsed, expected);
+}
+
+#[test]
+fn test_tool_call_with_channel_before_recipient_and_constrain_adjacent() {
+    let encoding = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss).unwrap();
+    let text = "<|start|>assistant<|channel|>commentary to=functions.get_weather<|constrain|>json<|message|>{\"latitude\":48.8566,\"longitude\":2.3522}<|call|>";
+    let tokens = encoding.tokenizer().encode_with_special_tokens(text);
+    let parsed = encoding
+        .parse_messages_from_completion_tokens(tokens, None)
+        .expect("expected to parse");
+    let expected = vec![Message::from_role_and_content(
+        Role::Assistant,
+        "{\"latitude\":48.8566,\"longitude\":2.3522}",
+    )
+    .with_channel("commentary")
+    .with_recipient("functions.get_weather")
+    .with_content_type("<|constrain|>json")];
+    assert_eq!(parsed, expected);
+}

@@ -20,3 +20,7 @@ demo = ["uvicorn", "fastapi"]
 features = ["pyo3/extension-module"]
 module-name = "openai_harmony"
 python-source = "python"
+
+[tool.pytest.ini_options]
+# Only collect tests from the top-level tests directory
+testpaths = ["tests"]
