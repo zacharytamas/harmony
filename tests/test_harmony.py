@@ -59,7 +59,7 @@ def _assert_tokens_eq(encoding, expected: List[int], actual: List[int]):  # type
 
 
 def read_expected_tokens(file_path: Path) -> List[int]:
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         return [int(x) for x in f.read().split()]
 
 
@@ -78,7 +78,9 @@ def test_simple_convo(encoding_name):
     encoding = load_harmony_encoding(encoding_name)
 
     expected_text = (
-        (ROOT_DIR / "test-data" / "test_simple_convo.txt").read_text().rstrip()
+        (ROOT_DIR / "test-data" / "test_simple_convo.txt")
+        .read_text(encoding="utf-8")
+        .rstrip()
     )
     expected_tokens = encoding.encode(expected_text, allowed_special="all")
 
@@ -143,7 +145,7 @@ def test_simple_convo_with_effort(encoding_name):
     ]
 
     for effort, tokens_path, use_instruction in test_cases:
-        expected_text = tokens_path.read_text().rstrip()
+        expected_text = tokens_path.read_text(encoding="utf-8").rstrip()
         expected_tokens = encoding.encode(expected_text, allowed_special="all")
         sys = (
             SystemContent.new()
@@ -299,7 +301,7 @@ def test_reasoning_system_message(encoding_name):
 
     expected_text = (
         (ROOT_DIR / "test-data" / "test_reasoning_system_message.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
     expected = encoding.encode(expected_text, allowed_special="all")
@@ -336,7 +338,7 @@ def test_reasoning_system_message_no_instruction(encoding_name):
 
     expected_text = (
         (ROOT_DIR / "test-data" / "test_reasoning_system_message_no_instruction.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
     expected = encoding.encode(expected_text, allowed_special="all")
@@ -376,7 +378,7 @@ def test_reasoning_system_message_with_dates(encoding_name):
 
     expected_text = (
         (ROOT_DIR / "test-data" / "test_reasoning_system_message_with_dates.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
     expected = encoding.encode(expected_text, allowed_special="all")
@@ -409,7 +411,7 @@ def test_render_functions_with_parameters():
 
     expected_output = (
         (ROOT_DIR / "test-data" / "test_render_functions_with_parameters.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
 
@@ -526,7 +528,9 @@ def test_render_functions_with_parameters():
 def test_no_tools():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
     expected_output = (
-        (ROOT_DIR / "test-data" / "test_no_tools.txt").read_text().rstrip()
+        (ROOT_DIR / "test-data" / "test_no_tools.txt")
+        .read_text(encoding="utf-8")
+        .rstrip()
     )
 
     convo = Conversation.from_messages(
@@ -546,7 +550,9 @@ def test_no_tools():
 def test_browser_tool_only():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
     expected_output = (
-        (ROOT_DIR / "test-data" / "test_browser_tool_only.txt").read_text().rstrip()
+        (ROOT_DIR / "test-data" / "test_browser_tool_only.txt")
+        .read_text(encoding="utf-8")
+        .rstrip()
     )
 
     convo = Conversation.from_messages(
@@ -569,7 +575,7 @@ def test_browser_and_function_tool():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
     expected_output = (
         (ROOT_DIR / "test-data" / "test_browser_and_function_tool.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
 
@@ -611,7 +617,7 @@ def test_browser_and_python_tool():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
     expected_output = (
         (ROOT_DIR / "test-data" / "test_browser_and_python_tool.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
 
@@ -637,7 +643,7 @@ def test_dropping_cot_by_default():
 
     expected_output = (
         (ROOT_DIR / "test-data" / "test_dropping_cot_by_default.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
 
@@ -667,7 +673,7 @@ def test_does_not_drop_if_ongoing_analysis():
 
     expected_output = (
         (ROOT_DIR / "test-data" / "test_does_not_drop_if_ongoing_analysis.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
 
@@ -702,7 +708,9 @@ def test_preserve_cot():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
 
     expected_output = (
-        (ROOT_DIR / "test-data" / "test_preserve_cot.txt").read_text().rstrip()
+        (ROOT_DIR / "test-data" / "test_preserve_cot.txt")
+        .read_text(encoding="utf-8")
+        .rstrip()
     )
 
     convo = Conversation.from_messages(
@@ -738,7 +746,7 @@ def test_keep_analysis_between_final_messages():
 
     expected_output = (
         (ROOT_DIR / "test-data" / "test_keep_analysis_between_finals.txt")
-        .read_text()
+        .read_text(encoding="utf-8")
         .rstrip()
     )
 
@@ -880,7 +888,9 @@ def test_tool_response_parsing():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
 
     text_tokens = (
-        (ROOT_DIR / "test-data" / "test_tool_response_parsing.txt").read_text().rstrip()
+        (ROOT_DIR / "test-data" / "test_tool_response_parsing.txt")
+        .read_text(encoding="utf-8")
+        .rstrip()
     )
 
     expected_message = (
@@ -904,7 +914,9 @@ def test_streamable_parser():
     encoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
 
     text_tokens = (
-        (ROOT_DIR / "test-data" / "test_streamable_parser.txt").read_text().rstrip()
+        (ROOT_DIR / "test-data" / "test_streamable_parser.txt")
+        .read_text(encoding="utf-8")
+        .rstrip()
     )
 
     tokens = encoding.encode(text_tokens, allowed_special="all")

@@ -12,9 +12,6 @@
 //! A thin, typed, user-facing Python wrapper around these low-level bindings is
 //! provided in `harmony/__init__.py`.
 
-// Only compile when the `python-binding` feature is enabled.
-#![cfg(feature = "python-binding")]
-
 use pyo3::prelude::*;
 
 // We need the `Python` type later on.
@@ -33,8 +30,6 @@ use crate::{
     encoding::{HarmonyEncoding, StreamableParser},
     load_harmony_encoding, HarmonyEncodingName,
 };
-
-use serde_json;
 
 /// A thin PyO3 wrapper around the Rust `HarmonyEncoding` struct.
 #[pyclass]
@@ -393,8 +388,7 @@ fn openai_harmony(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
             "python" => ToolNamespaceConfig::python(),
             _ => {
                 return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(format!(
-                    "Unknown tool namespace: {}",
-                    tool
+                    "Unknown tool namespace: {tool}"
                 )));
             }
         };
