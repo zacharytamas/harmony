@@ -12,6 +12,8 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = ["pydantic>=2.11.7"]
+description = "OpenAI's response format for its open-weight model series gpt-oss"
+readme = "README.md"
 
 [project.optional-dependencies]
 demo = ["uvicorn", "fastapi"]
