@@ -177,10 +177,10 @@ source .venv/bin/activate
 # Install maturin and test dependencies
 pip install maturin pytest mypy ruff  # tailor to your workflow
 # Compile the Rust crate *and* install the Python package in editable mode
-maturin develop -F python-binding --release
+maturin develop --release
 ```
 
-`maturin develop -F python-binding` builds _harmony_ with Cargo, produces a native extension
+`maturin develop` builds _harmony_ with Cargo, produces a native extension
 (`openai_harmony.<abi>.so`) and places it in your virtualenv next to the pure-
 Python wrapper – similar to `pip install -e .` for pure Python projects.
 
