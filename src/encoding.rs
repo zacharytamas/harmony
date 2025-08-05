@@ -5,10 +5,7 @@ use crate::{
 use anyhow::Context as _;
 use std::{
     collections::{HashMap, HashSet},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
+    sync::Arc,
     vec,
 };
 
@@ -92,7 +89,6 @@ pub struct HarmonyEncoding {
     pub(crate) format_token_mapping: HashMap<FormattingToken, String>,
     pub(crate) stop_formatting_tokens: HashSet<FormattingToken>,
     pub(crate) stop_formatting_tokens_for_assistant_actions: HashSet<FormattingToken>,
-    pub(crate) conversation_has_function_tools: Arc<AtomicBool>,
 }
 
 impl std::fmt::Debug for HarmonyEncoding {
@@ -191,8 +187,9 @@ impl HarmonyEncoding {
                 }
             })
         });
-        self.conversation_has_function_tools
-            .store(has_function_tools, Ordering::Relaxed);
+        let render_options = RenderOptions {
+            conversation_has_function_tools: has_function_tools,
+        };
         let last_assistant_is_final = messages
             .iter()
             .rev()
@@ -217,9 +214,7 @@ impl HarmonyEncoding {
                     && first_final_idx.is_some_and(|first| *idx < first)
                     && msg.channel.as_deref() == Some("analysis"))
             })
-            .try_for_each(|(_, msg)| self.render_into(msg, into));
-        self.conversation_has_function_tools
-            .store(false, Ordering::Relaxed);
+            .try_for_each(|(_, msg)| self.render_into(msg, into, Some(&render_options)));
         result?;
         Ok(())
     }
@@ -305,18 +300,27 @@ impl HarmonyEncoding {
     }
 
     /// Render a single message into tokens.
-    pub fn render(&self, message: &Message) -> anyhow::Result<Vec<Rank>> {
+    pub fn render(
+        &self,
+        message: &Message,
+        render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<Vec<Rank>> {
         let mut out = vec![];
-        Render::<Message>::render(self, message, &mut out)?;
+        Render::<Message>::render(self, message, &mut out, render_options)?;
         Ok(out)
     }
 
     /// Render a single message into the provided buffer.
-    pub fn render_into<B>(&self, message: &Message, into: &mut B) -> anyhow::Result<()>
+    pub fn render_into<B>(
+        &self,
+        message: &Message,
+        into: &mut B,
+        render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>,
     {
-        Render::<Message>::render(self, message, into)
+        Render::<Message>::render(self, message, into, render_options)
     }
 }
 
@@ -772,14 +776,29 @@ impl HarmonyEncoding {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct RenderOptions {
+    pub conversation_has_function_tools: bool,
+}
+
 trait Render<T: ?Sized> {
-    fn render<B>(&self, item: &T, into: &mut B) -> anyhow::Result<()>
+    fn render<B>(
+        &self,
+        item: &T,
+        into: &mut B,
+        render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>;
 }
 
 impl Render<Message> for HarmonyEncoding {
-    fn render<B>(&self, message: &Message, into: &mut B) -> anyhow::Result<()>
+    fn render<B>(
+        &self,
+        message: &Message,
+        into: &mut B,
+        render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>,
     {
@@ -836,7 +855,7 @@ impl Render<Message> for HarmonyEncoding {
                     message.author.role
                 );
             }
-            Render::<Content>::render(self, content, into)?;
+            Render::<Content>::render(self, content, into, render_options)?;
         }
 
         // If there is a tool call we should render a tool call token
@@ -851,15 +870,22 @@ impl Render<Message> for HarmonyEncoding {
 
 // Dispatch Content variants to their specific Render implementations
 impl Render<Content> for HarmonyEncoding {
-    fn render<B>(&self, content: &Content, into: &mut B) -> anyhow::Result<()>
+    fn render<B>(
+        &self,
+        content: &Content,
+        into: &mut B,
+        render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>,
     {
         match content {
-            Content::Text(text) => Render::<TextContent>::render(self, text, into),
-            Content::SystemContent(sys) => Render::<SystemContent>::render(self, sys, into),
+            Content::Text(text) => Render::<TextContent>::render(self, text, into, render_options),
+            Content::SystemContent(sys) => {
+                Render::<SystemContent>::render(self, sys, into, render_options)
+            }
             Content::DeveloperContent(dev) => {
-                Render::<crate::chat::DeveloperContent>::render(self, dev, into)
+                Render::<crate::chat::DeveloperContent>::render(self, dev, into, render_options)
             }
         }
     }
@@ -867,7 +893,12 @@ impl Render<Content> for HarmonyEncoding {
 
 // Render plain text content
 impl Render<TextContent> for HarmonyEncoding {
-    fn render<B>(&self, text: &TextContent, into: &mut B) -> anyhow::Result<()>
+    fn render<B>(
+        &self,
+        text: &TextContent,
+        into: &mut B,
+        _render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>,
     {
@@ -877,7 +908,12 @@ impl Render<TextContent> for HarmonyEncoding {
 
 // Render system-specific content (model identity, instructions, effort)
 impl Render<SystemContent> for HarmonyEncoding {
-    fn render<B>(&self, sys: &SystemContent, into: &mut B) -> anyhow::Result<()>
+    fn render<B>(
+        &self,
+        sys: &SystemContent,
+        into: &mut B,
+        render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>,
     {
@@ -923,7 +959,7 @@ impl Render<SystemContent> for HarmonyEncoding {
                 if channel_config.channel_required {
                     channels_header.push_str(" Channel must be included for every message.");
                 }
-                if self.conversation_has_function_tools.load(Ordering::Relaxed) {
+                if render_options.is_some_and(|o| o.conversation_has_function_tools) {
                     channels_header.push('\n');
                     channels_header.push_str(
                         "Calls to these tools must go to the commentary channel: 'functions'.",
@@ -940,7 +976,12 @@ impl Render<SystemContent> for HarmonyEncoding {
 
 // Render developer-specific content (instructions, tools)
 impl Render<crate::chat::DeveloperContent> for HarmonyEncoding {
-    fn render<B>(&self, dev: &crate::chat::DeveloperContent, into: &mut B) -> anyhow::Result<()>
+    fn render<B>(
+        &self,
+        dev: &crate::chat::DeveloperContent,
+        into: &mut B,
+        _render_options: Option<&RenderOptions>,
+    ) -> anyhow::Result<()>
     where
         B: Extend<Rank>,
     {

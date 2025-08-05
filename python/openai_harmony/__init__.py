@@ -425,6 +425,10 @@ class RenderConversationConfig(BaseModel):
     auto_drop_analysis: bool = True
 
 
+class RenderOptions(BaseModel):
+    conversation_has_function_tools: bool = False
+
+
 class HarmonyEncoding:
     """High-level wrapper around the Rust ``PyHarmonyEncoding`` class."""
 
@@ -498,9 +502,20 @@ class HarmonyEncoding:
             config=config_dict,
         )
 
-    def render(self, message: Message) -> List[int]:
+    def render(
+        self, message: Message, render_options: Optional[RenderOptions] = None
+    ) -> List[int]:
         """Render a single message into tokens."""
-        return self._inner.render(message_json=message.to_json())
+        if render_options is None:
+            render_options_dict = {"conversation_has_function_tools": False}
+        else:
+            render_options_dict = {
+                "conversation_has_function_tools": render_options.conversation_has_function_tools
+            }
+
+        return self._inner.render(
+            message_json=message.to_json(), render_options=render_options_dict
+        )
 
     # -- Parsing -------------------------------------------------------
 

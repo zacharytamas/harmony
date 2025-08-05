@@ -178,13 +178,29 @@ impl PyHarmonyEncoding {
     }
 
     /// Render a single message into tokens.
-    fn render(&self, message_json: &str) -> PyResult<Vec<u32>> {
+    fn render(
+        &self,
+        message_json: &str,
+        render_options: Option<Bound<'_, PyDict>>,
+    ) -> PyResult<Vec<u32>> {
         let message: crate::chat::Message = serde_json::from_str(message_json).map_err(|e| {
             PyErr::new::<pyo3::exceptions::PyValueError, _>(format!("invalid message JSON: {e}"))
         })?;
 
+        let rust_options = if let Some(options_dict) = render_options {
+            let conversation_has_function_tools = options_dict
+                .get_item("conversation_has_function_tools")?
+                .and_then(|v| v.extract().ok())
+                .unwrap_or(false);
+            Some(crate::encoding::RenderOptions {
+                conversation_has_function_tools,
+            })
+        } else {
+            None
+        };
+
         self.inner
-            .render(&message)
+            .render(&message, rust_options.as_ref())
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))
     }
 

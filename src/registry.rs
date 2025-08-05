@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    sync::{atomic::AtomicBool, Arc},
+    sync::Arc,
 };
 
 use crate::{
@@ -76,7 +76,6 @@ pub fn load_harmony_encoding(name: HarmonyEncodingName) -> anyhow::Result<Harmon
                     FormattingToken::EndMessageDoneSampling,
                     FormattingToken::EndMessageAssistantToTool,
                 ]),
-                conversation_has_function_tools: Arc::new(AtomicBool::new(false)),
             })
         }
     }

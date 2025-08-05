@@ -525,7 +525,7 @@ fn test_render_and_render_conversation_roundtrip() {
     let encoding = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss).unwrap();
     let msg = Message::from_role_and_content(Role::User, "Hello");
     let convo = Conversation::from_messages([msg.clone()]);
-    let tokens_msg = encoding.render(&msg).unwrap();
+    let tokens_msg = encoding.render(&msg, None).unwrap();
     let tokens_convo = encoding.render_conversation(&convo, None).unwrap();
     assert_eq!(tokens_msg, tokens_convo);
     let tokens_completion = encoding
