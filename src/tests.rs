@@ -25,7 +25,9 @@ fn test_simple_convo() {
         let expected_tokens = encoding
             .tokenizer
             .encode(
-                include_str!("../test-data/test_simple_convo.txt").trim_end(),
+                include_str!("../test-data/test_simple_convo.txt")
+                    .replace("\r\n", "\n")
+                    .trim_end(),
                 &encoding.tokenizer.special_tokens(),
             )
             .0;
