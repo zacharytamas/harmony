@@ -16,10 +16,10 @@ description = "OpenAI's response format for its open-weight model series gpt-oss
 readme = "README.md"
 
 [project.optional-dependencies]
-demo = ["uvicorn", "fastapi"]
+demo = []
 
 [tool.maturin]
-features = ["pyo3/extension-module"]
+features = ["python-binding", "pyo3/extension-module"]
 module-name = "openai_harmony"
 python-source = "python"
 
