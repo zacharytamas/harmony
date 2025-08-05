@@ -1,5 +1,3 @@
-#![cfg(feature = "wasm-binding")]
-
 use wasm_bindgen::prelude::*;
 
 use crate::{
@@ -9,8 +7,6 @@ use crate::{
 };
 
 use serde::Deserialize;
-use serde_json;
-use serde_wasm_bindgen;
 
 #[wasm_bindgen]
 extern "C" {
@@ -335,8 +331,7 @@ pub fn get_tool_namespace_config(tool: &str) -> Result<JsValue, JsValue> {
         "python" => ToolNamespaceConfig::python(),
         _ => {
             return Err(JsValue::from_str(&format!(
-                "Unknown tool namespace: {}",
-                tool
+                "Unknown tool namespace: {tool}"
             )))
         }
     };
