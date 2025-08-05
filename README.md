@@ -10,9 +10,9 @@
 
 The [gpt-oss models][gpt-oss] were trained on the [harmony response format][harmony-format] for defining conversation structures, generating reasoning output and structuring function calls. If you are not using gpt-oss directly but through an API or a provider like HuggingFace, Ollama, or vLLM, you will not have to be concerned about this as your inference solution will handle the formatting. If you are building your own inference solution, this guide will walk you through the prompt format. The format is designed to mimic the OpenAI Responses API, so if you have used that API before, this format should hopefully feel familiar to you. gpt-oss should not be used without using the harmony format as it will not work correctly.
 
-The format enables the model to output to multiple different channels for chain of thought, and tool calling premables along with regular responses. It also enables specifying various tool namespaces, and structured outputs along with a clear instruction hierarchy. [Check out the guide][harmony-format] to learn more about the format itself.
+The format enables the model to output to multiple different channels for chain of thought, and tool calling preambles along with regular responses. It also enables specifying various tool namespaces, and structured outputs along with a clear instruction hierarchy. [Check out the guide][harmony-format] to learn more about the format itself.
 
-```
+```text
 <|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.
 Knowledge cutoff: 2024-06
 Current date: 2025-06-28
@@ -114,11 +114,11 @@ openai-harmony = { git = "https://github.com/openai/harmony" }
 ```rust
 use openai_harmony::chat::{Message, Role, Conversation};
 use openai_harmony::{HarmonyEncodingName, load_harmony_encoding};
+
 fn main() -> anyhow::Result<()> {
     let enc = load_harmony_encoding(HarmonyEncodingName::HarmonyGptOss)?;
-    let convo = Conversation::from_messages([
-        Message::from_role_and_content(Role::User, "Hello there!"),
-    ]);
+    let convo =
+        Conversation::from_messages([Message::from_role_and_content(Role::User, "Hello there!")]);
     let tokens = enc.render_conversation_for_completion(&convo, Role::Assistant, None)?;
     println!("{:?}", tokens);
     Ok(())
@@ -130,7 +130,7 @@ fn main() -> anyhow::Result<()> {
 The majority of the rendering and parsing is built in Rust for performance and exposed to Python
 through thin [`pyo3`](https://pyo3.rs/) bindings.
 
-```
+```text
 ┌──────────────────┐      ┌───────────────────────────┐
 │  Python code     │      │  Rust core (this repo)    │
 │  (dataclasses,   │────► │  • chat / encoding logic  │
@@ -140,7 +140,7 @@ through thin [`pyo3`](https://pyo3.rs/) bindings.
 
 ### Repository layout
 
-```
+```text
 .
 ├── src/                  # Rust crate
 │   ├── chat.rs           # High-level data-structures (Role, Message, …)
@@ -177,10 +177,10 @@ source .venv/bin/activate
 # Install maturin and test dependencies
 pip install maturin pytest mypy ruff  # tailor to your workflow
 # Compile the Rust crate *and* install the Python package in editable mode
-maturin develop -F python-binding --release
+maturin develop --release
 ```
 
-`maturin develop -F python-binding` builds _harmony_ with Cargo, produces a native extension
+`maturin develop` builds _harmony_ with Cargo, produces a native extension
 (`openai_harmony.<abi>.so`) and places it in your virtualenv next to the pure-
 Python wrapper – similar to `pip install -e .` for pure Python projects.
 

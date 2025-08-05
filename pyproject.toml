@@ -19,7 +19,7 @@ readme = "README.md"
 demo = ["uvicorn", "fastapi"]
 
 [tool.maturin]
-features = ["pyo3/extension-module"]
+features = ["python-binding", "pyo3/extension-module"]
 module-name = "openai_harmony"
 python-source = "python"
 
