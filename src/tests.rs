@@ -83,6 +83,8 @@ fn test_simple_convo_with_effort() {
     for encoding_name in ENCODINGS {
         let encoding = load_harmony_encoding(encoding_name).unwrap();
         for (effort, expected_text, use_instruction) in test_cases {
+            // on windows, we need to replace \r\n with \n
+            let expected_text = expected_text.replace("\r\n", "\n");
             let expected_tokens = encoding
                 .tokenizer
                 .encode(
