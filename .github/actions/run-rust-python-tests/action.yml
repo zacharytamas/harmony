@@ -63,5 +63,7 @@ runs:
 
     - name: Run pytest
       shell: bash
+      env:
+        PYTHONUTF8: "1"
       run: |
         pytest -q
