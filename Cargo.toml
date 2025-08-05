@@ -4,6 +4,7 @@ version = "0.0.1"
 edition = "2021"
 license = "Apache-2.0"
 repository = "https://github.com/openai/harmony"
+description = "OpenAI's response format for its open-weight model series gpt-oss"
 
 [lib]
 name = "openai_harmony"
