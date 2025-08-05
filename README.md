@@ -119,7 +119,7 @@ fn main() -> anyhow::Result<()> {
     let convo = Conversation::from_messages([
         Message::from_role_and_content(Role::User, "Hello there!"),
     ]);
-    let tokens = enc.render_conversation_for_completion(&convo, Role::Assistant)?;
+    let tokens = enc.render_conversation_for_completion(&convo, Role::Assistant, None)?;
     println!("{:?}", tokens);
     Ok(())
 }
