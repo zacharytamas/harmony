@@ -235,7 +235,7 @@ impl JsStreamableParser {
     pub fn new(encoding: &JsHarmonyEncoding, role: &str) -> Result<JsStreamableParser, JsValue> {
         let parsed_role = Role::try_from(role)
             .map_err(|_| JsValue::from_str(&format!("unknown role: {role}")))?;
-        let inner = StreamableParser::new(encoding.inner.clone(), parsed_role)
+        let inner = StreamableParser::new(encoding.inner.clone(), Some(parsed_role))
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         Ok(Self { inner })
     }
@@ -323,9 +323,8 @@ pub async fn load_harmony_encoding(
     let parsed: HarmonyEncodingName = name
         .parse::<HarmonyEncodingName>()
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
-    let encoding = inner_load_harmony_encoding(parsed)
-        .await
-        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let encoding =
+        inner_load_harmony_encoding(parsed).map_err(|e| JsValue::from_str(&e.to_string()))?;
     Ok(JsHarmonyEncoding { inner: encoding })
 }
 
