@@ -43,6 +43,9 @@ jobs:
           python-version: 3.x
       - name: Build wheels
         uses: PyO3/maturin-action@v1
+        env:
+          # Ensure ring's ARM assembly sees an explicit architecture on aarch64 (glibc)
+          CFLAGS_aarch64_unknown_linux_gnu: -D__ARM_ARCH=8
         with:
           target: ${{ matrix.platform.target }}
           args: -F python-binding --release --out dist --find-interpreter
@@ -74,6 +77,9 @@ jobs:
           python-version: 3.x
       - name: Build wheels
         uses: PyO3/maturin-action@v1
+        env:
+          # Ensure ring's ARM assembly sees an explicit architecture on aarch64 (musl)
+          CFLAGS_aarch64_unknown_linux_musl: -D__ARM_ARCH=8
         with:
           target: ${{ matrix.platform.target }}
           args: -F python-binding --release --out dist --find-interpreter
