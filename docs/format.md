@@ -305,7 +305,7 @@ And the actual answer is:
 ```
 
 **Important:**  
-The model has not been trained to the same safety standards in the chain-of-thought as it has for final output. You should We recommend not to show the chain-of-thought to your users as they might contain harmful content. [Learn more in the model card](https://openai.com/index/gpt-oss-model-card/).
+The model has not been trained to the same safety standards in the chain-of-thought as it has for final output. We recommend not to show the chain-of-thought to your users as they might contain harmful content. [Learn more in the model card](https://openai.com/index/gpt-oss-model-card/).
 
 #### Handling reasoning output in subsequent sampling
 
