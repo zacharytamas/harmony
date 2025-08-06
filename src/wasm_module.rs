@@ -18,6 +18,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "RenderConversationConfig")]
     pub type JsRenderConversationConfig;
+
+    #[wasm_bindgen(typescript_type = "RenderOptions")]
+    pub type JsRenderOptions;
 }
 
 #[wasm_bindgen(typescript_custom_section)]
@@ -127,12 +130,34 @@ impl JsHarmonyEncoding {
     }
 
     #[wasm_bindgen]
-    pub fn render(&self, message: JsMessage) -> Result<Vec<u32>, JsValue> {
+    pub fn render(
+        &self,
+        message: JsMessage,
+        render_options: JsRenderOptions,
+    ) -> Result<Vec<u32>, JsValue> {
         let message: JsValue = message.into();
         let message: crate::chat::Message = serde_wasm_bindgen::from_value(message)
             .map_err(|e| JsValue::from_str(&format!("invalid message JSON: {e}")))?;
+
+        #[derive(Deserialize)]
+        struct RenderOptions {
+            conversation_has_function_tools: Option<bool>,
+        }
+        let render_options: JsValue = render_options.into();
+        let rust_options = if render_options.is_undefined() || render_options.is_null() {
+            None
+        } else {
+            let cfg: RenderOptions = serde_wasm_bindgen::from_value(render_options)
+                .map_err(|e| JsValue::from_str(&format!("invalid render options: {e}")))?;
+            Some(crate::encoding::RenderOptions {
+                conversation_has_function_tools: cfg
+                    .conversation_has_function_tools
+                    .unwrap_or(false),
+            })
+        };
+
         self.inner
-            .render(&message)
+            .render(&message, rust_options.as_ref())
             .map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
