@@ -5,4 +5,5 @@ set -e
 cargo fmt --check
 cargo clippy --all-targets --all-features -- -D warnings
 cargo test --all-targets --all-features
-
+mypy python/openai_harmony
+ruff check .
