@@ -29,6 +29,7 @@ rustc-hash = "1.1.0"
 bstr = "1.5.0"
 sha1 = "0.10.6"
 sha2 = "0.10.9"
+tsify = "0.5.5"
 # Use the pure-Rust `rustls` TLS backend so we don't depend on an OpenSSL
 # installation on the CI runners. We disable the default features (which
 # include `platform-native-tls`) and explicitly enable only the capabilities

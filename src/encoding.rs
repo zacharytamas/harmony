@@ -2,6 +2,7 @@ use crate::{
     chat::{Author, Content, Message, ReasoningEffort, Role, SystemContent, TextContent},
     tiktoken::{CoreBPE, Rank},
 };
+use tsify::Tsify;
 use anyhow::Context as _;
 use std::{
     collections::{HashMap, HashSet},
@@ -1409,7 +1410,7 @@ impl StreamableParser {
 }
 
 // Add config struct for rendering
-#[derive(Clone, Debug)]
+#[derive(Tsify, serde::Serialize, serde::Deserialize, Clone, Debug)]
 pub struct RenderConversationConfig {
     pub auto_drop_analysis: bool,
 }

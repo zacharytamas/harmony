@@ -1,4 +1,5 @@
 use core::fmt;
+use tsify::Tsify;
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize,
@@ -7,7 +8,7 @@ use std::collections::BTreeMap;
 use std::{fmt::Display, marker::PhantomData};
 
 #[serde_with::skip_serializing_none]
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Author {
     pub role: Role,
     pub name: Option<String>,
@@ -28,7 +29,7 @@ impl From<Role> for Author {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum Role {
     User,
@@ -70,7 +71,7 @@ impl Display for Role {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum Content {
     Text(TextContent),
@@ -102,7 +103,7 @@ impl From<DeveloperContent> for Content {
 }
 
 #[serde_with::skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Message {
     /// An object representing the author of the message, including
     /// their role (e.g., user, assistant) and any additional metadata.
@@ -200,19 +201,19 @@ impl Message {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct TextContent {
     pub text: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Copy, Debug, PartialEq)]
 pub enum ReasoningEffort {
     Low,
     Medium,
     High,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct ChannelConfig {
     /// List of valid channels to instruct the model it can generate.
     ///
@@ -236,7 +237,7 @@ impl ChannelConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ToolNamespaceConfig {
     pub name: String,
     pub description: Option<String>,
@@ -318,7 +319,7 @@ impl ToolNamespaceConfig {
 }
 
 /// Content specific to system messages, includes model identity and its instructions
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct SystemContent {
     pub model_identity: Option<String>,
     pub reasoning_effort: Option<ReasoningEffort>,
@@ -411,7 +412,7 @@ impl SystemContent {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ToolDescription {
     pub name: String,
     pub description: String,
@@ -432,7 +433,7 @@ impl ToolDescription {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Conversation {
     pub messages: Vec<Message>,
 }
@@ -503,7 +504,7 @@ where
 }
 
 /// Content specific to developer messages, includes developer identity and its instructions
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
+#[derive(Tsify, Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct DeveloperContent {
     pub instructions: Option<String>,
     pub tools: Option<BTreeMap<String, ToolNamespaceConfig>>,

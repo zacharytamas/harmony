@@ -1,4 +1,5 @@
 use wasm_bindgen::prelude::*;
+use tsify::Tsify;
 
 use crate::{
     chat::{Message, Role, ToolNamespaceConfig},
@@ -23,40 +24,7 @@ extern "C" {
     pub type JsRenderOptions;
 }
 
-#[wasm_bindgen(typescript_custom_section)]
-const TS_APPEND: &str = r#"
-export interface Author {
-  role: 'user' | 'assistant' | 'system' | 'developer' | 'tool';
-  name?: string;
-}
 
-export type Content =
-  | { type: 'text'; text: string }
-  | { type: 'system_content'; model_identity?: string; reasoning_effort?: string; tools?: Record<string, ToolNamespaceConfig>; conversation_start_date?: string; knowledge_cutoff?: string }
-  | { type: 'developer_content'; instructions?: string; tools?: Record<string, ToolNamespaceConfig> };
-
-export interface Message {
-  author: Author;
-  content: Content[];
-  channel?: string;
-  recipient?: string;
-  content_type?: string;
-}
-
-export interface Conversation {
-  messages: Message[];
-}
-
-export interface RenderConversationConfig {
-  auto_drop_analysis?: boolean;
-}
-
-export interface ToolNamespaceConfig {
-  name: string;
-  description?: string;
-  tools: any[];
-}
-"#;
 
 #[wasm_bindgen]
 pub struct JsHarmonyEncoding {
