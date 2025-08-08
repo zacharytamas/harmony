@@ -708,6 +708,7 @@ __all__ = [
     "Author",
     "Content",
     "TextContent",
+    "DeveloperContent",
     "ToolDescription",
     "SystemContent",
     "Message",
