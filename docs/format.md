@@ -324,7 +324,7 @@ Then the input for the next sampling should be
 
 ```
 <|start|>user<|message|>What is 2 + 2?<|end|>
-<|start|>assistant<|channel|>final<|message|>2 + 2 = 4.<|return|>
+<|start|>assistant<|channel|>final<|message|>2 + 2 = 4.<|end|>
 <|start|>user<|message|>What about 9 / 2?<|end|>
 <|start|>assistant
 ```
