@@ -836,7 +836,23 @@ impl Render<Message> for HarmonyEncoding {
 
         // finally content type
         if let Some(content_type) = &message.content_type {
-            self.render_text_into(format!(" {content_type}"), into)?;
+            // <|constrain|> is a unique case which needs to be tokenized as a special token
+            if let Some(constrain_marker) =
+                self.mapped_format_token(FormattingToken::ConstrainedFormat)
+            {
+                if let Some(rest) = content_type.strip_prefix(constrain_marker) {
+                    // Render the space, then the constrain marker as a special token, then the rest as text (if any)
+                    self.render_text_into(" ", into)?;
+                    self.render_formatting_token_into(FormattingToken::ConstrainedFormat, into)?;
+                    if !rest.is_empty() {
+                        self.render_text_into(rest, into)?;
+                    }
+                } else {
+                    self.render_text_into(format!(" {content_type}"), into)?;
+                }
+            } else {
+                self.render_text_into(format!(" {content_type}"), into)?;
+            }
         }
 
         self.render_formatting_token_into(FormattingToken::Message, into)?;
